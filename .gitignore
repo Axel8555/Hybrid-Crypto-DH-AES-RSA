@@ -2,4 +2,5 @@
 *.txt
 *.key
 *.pem
+*.hex
 /Keys

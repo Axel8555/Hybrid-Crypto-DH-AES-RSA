@@ -89,6 +89,38 @@ def derive_shared_secret(shared_key, info=None):
 
     return derived_key
 
+def read_file(file_path):
+    try:
+        with open(file_path, "rb") as f:
+            content = f.read()
+        return content
+    except Exception as e:
+        print(f"Error reading the file: {e}")
+        #messagebox.showwarning("Read error", f"Error reading the file. {e}")
+        return None
+
+
+def write_file(file_path, data, sufix=None):
+    file_path_base = file_path.rsplit(".", 1)[-2]
+    extension = file_path.rsplit(".", 1)[-1]
+    new_file_path = (
+        f"{file_path_base}{('_' + sufix) if sufix is not None else ''}.{extension}"
+    )
+    try:
+        with open(new_file_path, "wb") as f:
+            f.write(data)
+        print(f"File saved as: {new_file_path}")
+        #messagebox.showinfo(
+        #    "File saved",
+        #    f"File saved as: {os.path.basename(new_file_path)}",
+        #)
+        #subprocess.run(["start", new_file_path], shell=True)
+        return new_file_path
+    except Exception as e:
+        print(f"Error saving the file: {e}")
+        #messagebox.showwarning("Save error", f"Error saving the file. {e}")
+        return None
+
 
 if __name__ == "__main__":
     # Ejemplo de uso
@@ -136,11 +168,13 @@ if __name__ == "__main__":
     derived_key_AES = derive_shared_secret(shared_secret_A_to_B, b"KEY")
     print("La clave derivada para AES-128:", derived_key_AES.hex())
     print("Longitud de la clave derivada de A a B:", len(derived_key_AES), "bytes")
+    write_file("derived_key_AES.hex", derived_key_AES.hex().encode())
+    derived_key_AES2 = bytes.fromhex(read_file("derived_key_AES.hex").decode())
+    print("¿Las claves derivadas son iguales?", derived_key_AES == derived_key_AES2)
 
     derived_key_IV = derive_shared_secret(shared_secret_B_to_A, b"IV")
     print("La clave derivada para vector de inicialización:", derived_key_IV.hex())
     print("Longitud de la clave derivada de B a A:", len(derived_key_IV), "bytes")
-
-    derived_key_None = derive_shared_secret(shared_secret_B_to_A)
-    print("La clave derivada para vector de inicialización:", derived_key_None.hex())
-    print("Longitud de la clave derivada de B a A:", len(derived_key_None), "bytes")
+    write_file("derived_key_IV.hex", derived_key_IV.hex().encode())
+    derived_key_IV2 = bytes.fromhex(read_file("derived_key_IV.hex").decode())
+    print("¿Las claves derivadas son iguales?", derived_key_IV == derived_key_IV2)
