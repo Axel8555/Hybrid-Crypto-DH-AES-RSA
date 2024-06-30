@@ -7,6 +7,9 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, Text, Scrollbar
 import os, webbrowser
 
+# Global variables to store the last used file and mode of operation
+last_parameters_path = ""
+
 
 def load_private_key(file_path):
     with open(file_path, "rb") as key_file:
@@ -40,7 +43,7 @@ def open_file(file_path):
             # Unix based systems
             webbrowser.open(file_path)
     except Exception as e:
-        print(f"Error al abrir el archivo: {e}")
+        print(f"Error opening the file: {e}")
 
 
 def read_file(file_path):
@@ -90,21 +93,22 @@ def extract_content(content, header_size, footer_size):
 
 
 def generate_dh_parameters(suffix=None):
-    # Estos parámetros pueden ser guardados y reutilizados
+    global last_parameters_path
+    # These parameters can be saved and reused
     parameters = dh.generate_parameters(generator=2, key_size=2048)
 
-    # Serialización correcta de los parámetros DH
+    # Proper serialization of DH parameters
     pem = parameters.parameter_bytes(
         encoding=serialization.Encoding.PEM, format=serialization.ParameterFormat.PKCS3
     )
 
-    write_file("dh_parameters.pem", pem, suffix, False)
+    last_parameters_path = write_file("dh_parameters.pem", pem, suffix, False)
 
     messagebox.showinfo("Parameters generated", "DH parameters generated successfully.")
     return parameters
 
 
-# Generación de claves pública y privada
+# Generation of public and private keys
 def generate_dh_keys(parameters_path, suffix):
     if not verify_parameters_dh_keys(parameters_path):
         return None, None
@@ -113,7 +117,7 @@ def generate_dh_keys(parameters_path, suffix):
         private_key = parameters.generate_private_key()
         public_key = private_key.public_key()
 
-        # Serialización de la clave privada
+        # Serialization of the private key
         private_pem = private_key.private_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PrivateFormat.PKCS8,
@@ -121,7 +125,7 @@ def generate_dh_keys(parameters_path, suffix):
         )
         write_file("dh_private.pem", private_pem, suffix, False)
 
-        # Serialización de la clave pública
+        # Serialization of the public key
         public_pem = public_key.public_bytes(
             encoding=serialization.Encoding.PEM,
             format=serialization.PublicFormat.SubjectPublicKeyInfo,
@@ -132,7 +136,7 @@ def generate_dh_keys(parameters_path, suffix):
         return private_key, public_key
 
 
-# Función modificada para calcular la clave secreta compartida y derivar una clave AES-128
+# Function modified to calculate the shared secret and derive an AES-128 key
 def derive_shared_secret(private_key_path, public_key_path, info=None, suffix=None):
     if not verify_parameters_dh_shared_key(private_key_path, public_key_path):
         return None, None
@@ -141,10 +145,10 @@ def derive_shared_secret(private_key_path, public_key_path, info=None, suffix=No
         public_key = load_public_key(public_key_path)
         shared_key = private_key.exchange(public_key)
 
-        # Derivación de la clave AES-128 usando HKDF
+        # Derivation of the AES-128 key using HKDF
         derived_key = HKDF(
             algorithm=hashes.SHA256(),
-            length=16,  # Longitud para AES-128
+            length=16,  # Length for AES-128
             salt=None,
             info=info,
             backend=default_backend(),
@@ -246,22 +250,22 @@ def dh_menu(parent_window, action):
 
     if action == "Generate parameters g, n":
         action_window.geometry("400x150")
+
         # Text input for the pem files suffix
-        # Suffix
-        tk.Label(frame, text="Parameters file suffx:").pack(anchor="w")
+        tk.Label(frame, text="Parameters file suffix:").pack(anchor="w")
         suffix_entry = tk.Entry(frame, width=40)
         suffix_entry.pack(fill="x", expand=True)
 
         # Buttons
         button_color = "#de45c4"
         command = lambda: generate_dh_parameters(suffix=suffix_entry.get())
+
     elif action == "Generate dh keys":
         # File selection for DH parameters
-        # File path
         tk.Label(frame, text="DH parameters path:").pack(anchor="w")
         parameters_path_text = Text(frame, height=1, width=40)
         parameters_path_text.pack(fill="x", expand=True)
-        # parameters_path_text.insert(tk.END, last_file_path)
+        parameters_path_text.insert(tk.END, last_parameters_path)
         scrollbar = Scrollbar(
             frame, orient="horizontal", command=parameters_path_text.xview
         )
@@ -277,8 +281,7 @@ def dh_menu(parent_window, action):
         ).pack(anchor="e")
 
         # Text input for the pem files suffix
-        # Suffix
-        tk.Label(frame, text="Keys file suffx:").pack(anchor="w")
+        tk.Label(frame, text="Keys file suffix:").pack(anchor="w")
         suffix_entry = tk.Entry(frame, width=40)
         suffix_entry.pack(fill="x", expand=True)
 
@@ -288,13 +291,12 @@ def dh_menu(parent_window, action):
             parameters_path=parameters_path_text.get("1.0", "end-1c"),
             suffix=suffix_entry.get(),
         )
+
     else:  # Generate secret shared key
         # File selection for DH private key
-        # File path
         tk.Label(frame, text="DH private key path:").pack(anchor="w")
         private_key_path_text = Text(frame, height=1, width=40)
         private_key_path_text.pack(fill="x", expand=True)
-        # private_key_path_text.insert(tk.END, last_file_path)
         scrollbar = Scrollbar(
             frame, orient="horizontal", command=private_key_path_text.xview
         )
@@ -310,11 +312,9 @@ def dh_menu(parent_window, action):
         ).pack(anchor="e")
 
         # File selection for DH public shared key
-        # File path
         tk.Label(frame, text="DH shared public key path:").pack(anchor="w")
         shared_public_key_path_text = Text(frame, height=1, width=40)
         shared_public_key_path_text.pack(fill="x", expand=True)
-        # shared_public_key_path_text.insert(tk.END, last_file_path)
         scrollbar = Scrollbar(
             frame, orient="horizontal", command=shared_public_key_path_text.xview
         )
@@ -330,8 +330,7 @@ def dh_menu(parent_window, action):
         ).pack(anchor="e")
 
         # Text input for the hex file suffix
-        # Suffix
-        tk.Label(frame, text="Shared secret suffx:").pack(anchor="w")
+        tk.Label(frame, text="Shared secret suffix:").pack(anchor="w")
         suffix_entry = tk.Entry(frame, width=40)
         suffix_entry.pack(fill="x", expand=True)
 
