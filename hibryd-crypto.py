@@ -385,74 +385,71 @@ def verify_parameters_aes(file_path, key, mode, c0):
 def main_menu():
     main_menu_window = tk.Tk()
     main_menu_window.title("Crypto Tools")
-    main_menu_window.geometry("400x200")  # Adjust size to fit all buttons
+    main_menu_window.geometry("400x300")  # Ajusta la geometría según necesites
 
-    # Central container for buttons
-    button_frame = tk.Frame(main_menu_window)
-    button_frame.pack(pady=30)  # Center the frame vertically and add some padding
+    # Frame for Diffie-Hellman operations
+    dh_frame = tk.Frame(main_menu_window)
+    dh_frame.pack(pady=10, fill="x", expand=True)
 
-    # Button for DH parameters
     tk.Button(
-        button_frame,
+        dh_frame,
         text="DH parameters",
-        command=lambda: dh_menu(main_menu_window, "Generate parameters g, n"),
         bg="#de45c4",
-        width=20,
-    ).pack(side=tk.LEFT, padx=10)
-
-    # Button for DH keys
+        width=15,
+        command=lambda: dh_menu(main_menu_window, "Generate parameters g, n"),
+    ).pack(side="left", padx=10)
     tk.Button(
-        button_frame,
+        dh_frame,
         text="DH keys",
-        command=lambda: dh_menu(main_menu_window, "Generate dh keys"),
         bg="#ac45de",
-        width=20,
-    ).pack(side=tk.LEFT, padx=10)
-
-    # Button for DH shared secret
+        width=15,
+        command=lambda: dh_menu(main_menu_window, "Generate dh keys"),
+    ).pack(side="left", padx=10)
     tk.Button(
-        button_frame,
+        dh_frame,
         text="DH shared secret",
-        command=lambda: dh_menu(main_menu_window, "Generate secret shared key"),
         bg="#4577de",
-        width=20,
-    ).pack(side=tk.LEFT, padx=10)
+        width=15,
+        command=lambda: dh_menu(main_menu_window, "Generate secret shared key"),
+    ).pack(side="left", padx=10)
 
-    # Button for Signing
+    # Frame for RSA operations
+    rsa_frame = tk.Frame(main_menu_window)
+    rsa_frame.pack(pady=10, fill="x", expand=True)
+
     tk.Button(
-        button_frame,
+        rsa_frame,  
         text="Sign",
-        command=lambda: sign_verify_menu(main_menu_window, "Sign"),
         bg="#ff7e38",
-        width=20,
-    ).pack(side=tk.LEFT, padx=10)
-
-    # Button for Verification
+        width=24,
+        command=lambda: sign_verify_menu(main_menu_window, "Sign"),
+    ).pack(side="left", padx=10)
     tk.Button(
-        button_frame,
+        rsa_frame,
         text="Verify",
-        command=lambda: sign_verify_menu(main_menu_window, "Verify"),
         bg="#38b9ff",
-        width=20,
-    ).pack(side=tk.LEFT, padx=10)
+        width=24,
+        command=lambda: sign_verify_menu(main_menu_window, "Verify"),
+    ).pack(side="left", padx=10)
 
-    # Button for AES Cipher
+    # Frame for AES operations
+    aes_frame = tk.Frame(main_menu_window)
+    aes_frame.pack(pady=10, fill="x", expand=True)
+
     tk.Button(
-        button_frame,
+        aes_frame,
         text="Cipher",
-        command=lambda: cipher_decipher_menu(main_menu_window, "Cipher"),
         bg="#e06666",
-        width=20,
-    ).pack(side=tk.LEFT, padx=10)
-
-    # Button for AES Decipher
+        width=24,
+        command=lambda: cipher_decipher_menu(main_menu_window, "Cipher"),
+    ).pack(side="left", padx=10)
     tk.Button(
-        button_frame,
+        aes_frame,
         text="Decipher",
-        command=lambda: cipher_decipher_menu(main_menu_window, "Decipher"),
         bg="#93c47d",
-        width=20,
-    ).pack(side=tk.LEFT, padx=10)
+        width=24,
+        command=lambda: cipher_decipher_menu(main_menu_window, "Decipher"),
+    ).pack(side="left", padx=10)
 
     main_menu_window.mainloop()
 
